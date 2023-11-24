@@ -20,6 +20,23 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const database = client.db("assetDB");
+    const usersCollection = database.collection("users")
+
+    app.post("/users", async (req, res) => {
+        const newUser = req.body; 
+        const {email} = newUser.email;
+        const query = {email}
+        const isExist = await usersCollection.findOne(query);
+        if(isExist){
+            return res.send('user already exists')
+        }
+        else{
+            const userResult = await usersCollection.insertOne(newUser);
+            res.send(userResult)
+        }
+
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
