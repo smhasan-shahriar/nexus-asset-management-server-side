@@ -26,7 +26,21 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const database = client.db("assetDB");
-    const usersCollection = database.collection("users")
+    const usersCollection = database.collection("users");
+    const assetCollection = database.collection("assets");
+
+
+//asset related APIs
+    app.get("/assets", async(req, res) => {
+        const result = await assetCollection.find().toArray();
+        res.send(result)
+    })
+    app.post("/create-asset", async(req, res) => {
+        const newAsset = req.body;
+        const result = await assetCollection.insertOne(newAsset);
+        res.send(result)
+    })
+
 //user database related API
     app.post("/users", async (req, res) => {
         const newUser = req.body; 
@@ -47,7 +61,7 @@ async function run() {
         const userEmail = req.query.email;
         query = {email: userEmail}
         const user = await usersCollection.findOne(query);
-        res.send(user.role);
+        res.send(user);
 
     })
 
