@@ -28,11 +28,31 @@ async function run() {
     const database = client.db("assetDB");
     const usersCollection = database.collection("users");
     const assetCollection = database.collection("assets");
+    const customRequestCollection = database.collection("customRequests")
 
 
 //asset related APIs
     app.get("/assets", async(req, res) => {
-        const result = await assetCollection.find().toArray();
+        const category = req.query.category;
+        const sortField = req.query.sortField;
+        const sortOrder = req.query.sortOrder;
+        const search = req.query.search;
+
+        let queryObj ={}
+        let sortObj = {}
+        if(category){
+            queryObj.assetType = category;
+        }
+        if(search){
+            itemField = { $regex: new RegExp(search, 'i') }
+            queryObj.assetName = itemField;
+        }
+        if(sortField && sortOrder){
+            sortObj[sortField] = sortOrder;
+        }
+
+
+        const result = await assetCollection.find(queryObj).sort(sortObj).toArray();
         res.send(result)
     })
     app.post("/create-asset", async(req, res) => {
@@ -40,6 +60,14 @@ async function run() {
         const result = await assetCollection.insertOne(newAsset);
         res.send(result)
     })
+
+//request related APIs
+    app.post("/create-custom-request", async(req, res) => {
+        const newRequest = req.body;
+        const result = await customRequestCollection.insertOne(newRequest);
+        res.send(result)
+    })
+
 
 //user database related API
     app.post("/users", async (req, res) => {
