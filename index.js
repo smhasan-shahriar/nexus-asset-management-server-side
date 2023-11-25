@@ -33,15 +33,15 @@ async function run() {
 
 //asset related APIs
     app.get("/assets", async(req, res) => {
-        const category = req.query.category;
+        const typeField = req.query.typeField;
         const sortField = req.query.sortField;
         const sortOrder = req.query.sortOrder;
         const search = req.query.search;
 
         let queryObj ={}
         let sortObj = {}
-        if(category){
-            queryObj.assetType = category;
+        if(typeField){
+            queryObj.assetType = typeField;
         }
         if(search){
             itemField = { $regex: new RegExp(search, 'i') }
@@ -85,6 +85,20 @@ async function run() {
         }
 
     })
+    app.put("/users/:email", async(req, res) => {
+        const email = req.params.email;
+        const updatedUser = req.body;
+        const filter = {email}
+        const updateUser = {
+            $set: {
+                name: updatedUser.name,
+                dateOfBirth: updatedUser.dateOfBirth
+            }
+        }
+        const result = await usersCollection.updateOne(filter, updateUser);
+        res.send(result)
+    })
+
     app.get("/checkuser", async(req, res) => {
         const userEmail = req.query.email;
         query = {email: userEmail}
