@@ -28,7 +28,8 @@ async function run() {
     const database = client.db("assetDB");
     const usersCollection = database.collection("users");
     const assetCollection = database.collection("assets");
-    const customRequestCollection = database.collection("customRequests")
+    const customRequestCollection = database.collection("customRequests");
+    const requestCollection = database.collection("requests")
 
 
 //asset related APIs
@@ -61,13 +62,37 @@ async function run() {
         res.send(result)
     })
 
-//request related APIs
+//custom request related APIs
     app.post("/create-custom-request", async(req, res) => {
-        const newRequest = req.body;
-        const result = await customRequestCollection.insertOne(newRequest);
+        const newCustomRequest = req.body;
+        const result = await customRequestCollection.insertOne(newCustomRequest);
         res.send(result)
     })
 
+//request related APIs
+app.get("/allrequests", async(req, res) => {
+    const nameSearch = req.query.nameSearch;
+    const emailSearch = req.query.emailSearch;
+
+    let queryObj ={}
+   
+    if(nameSearch){
+        itemField = { $regex: new RegExp(nameSearch, 'i') }
+        queryObj.userName = itemField;
+    }
+    if(emailSearch){
+        queryObj.userEmail = emailSearch;
+    }
+
+
+    const result = await requestCollection.find(queryObj).toArray();
+    res.send(result)
+})
+    app.post("/create-request", async(req, res) => {
+        const newRequest = req.body;
+        const result = await requestCollection.insertOne(newRequest);
+        res.send(result);
+    })
 
 //user database related API
     app.post("/users", async (req, res) => {
