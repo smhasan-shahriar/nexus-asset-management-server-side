@@ -38,6 +38,7 @@ async function run() {
         const sortField = req.query.sortField;
         const sortOrder = req.query.sortOrder;
         const search = req.query.search;
+        const companySearch = req.query.companySearch;
 
         let queryObj ={}
         let sortObj = {}
@@ -51,7 +52,9 @@ async function run() {
         if(sortField && sortOrder){
             sortObj[sortField] = sortOrder;
         }
-
+        if(companySearch){
+            queryObj.companyName=companySearch;
+        }
 
         const result = await assetCollection.find(queryObj).sort(sortObj).toArray();
         res.send(result)
@@ -63,6 +66,20 @@ async function run() {
     })
 
 //custom request related APIs
+
+app.get("/allcustomrequests", async(req, res) => {
+    const companySearch = req.query.companySearch;
+    let queryObj ={}
+ 
+    if(companySearch){
+        queryObj.requesterCompany=companySearch;
+    }
+
+
+    const singleResult = await customRequestCollection.find(queryObj).toArray();
+    res.send({singleResult});
+})
+
     app.post("/create-custom-request", async(req, res) => {
         const newCustomRequest = req.body;
         const result = await customRequestCollection.insertOne(newCustomRequest);
@@ -70,10 +87,12 @@ async function run() {
     })
 
 //request related APIs
+
+
 app.get("/allrequests", async(req, res) => {
     const nameSearch = req.query.nameSearch;
     const emailSearch = req.query.emailSearch;
-
+    const companySearch = req.query.companySearch;
     let queryObj ={}
    
     if(nameSearch){
@@ -84,9 +103,13 @@ app.get("/allrequests", async(req, res) => {
         queryObj.userEmail = emailSearch;
     }
 
+    if(companySearch){
+        queryObj.requesterCompany=companySearch;
+    }
 
-    const result = await requestCollection.find(queryObj).toArray();
-    res.send(result)
+
+    const singleResult = await requestCollection.find(queryObj).toArray();
+    res.send({singleResult});
 })
     app.post("/create-request", async(req, res) => {
         const newRequest = req.body;
