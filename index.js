@@ -78,15 +78,19 @@ async function run() {
 
     app.get("/allcustomrequests", async (req, res) => {
       const companySearch = req.query.companySearch;
+      const emailSearch = req.query.emailSearch;
       let queryObj = {};
 
       if (companySearch) {
         queryObj.requesterCompany = companySearch;
       }
+      if(emailSearch){
+        queryObj.employeeEmail = emailSearch;
+      }
 
-      const singleResult = await customRequestCollection
-        .find(queryObj)
-        .toArray();
+      const singleResult = await customRequestCollection.find(queryObj).toArray();
+
+  
       res.send({ singleResult });
     });
 
@@ -117,6 +121,9 @@ async function run() {
       const nameSearch = req.query.nameSearch;
       const emailSearch = req.query.emailSearch;
       const companySearch = req.query.companySearch;
+      const statusSearch = req.query.statusSearch;
+      const typeSearch = req.query.typeSearch;
+      const itemNameSearch = req.query.itemNameSearch;
       let queryObj = {};
 
       if (nameSearch) {
@@ -126,7 +133,17 @@ async function run() {
       if (emailSearch) {
         queryObj.userEmail = emailSearch;
       }
-
+      if (emailSearch && statusSearch) {
+        queryObj.userEmail = emailSearch;
+        queryObj.status = statusSearch
+      }
+      if (emailSearch && typeSearch) {
+        queryObj.userEmail = emailSearch;
+        queryObj.assetType = typeSearch
+      }
+      if(itemNameSearch){
+        queryObj.assetName = { $regex: new RegExp(`^${itemNameSearch}$`, "i") };
+      }
       if (companySearch) {
         queryObj.requesterCompany = companySearch;
       }
@@ -144,6 +161,7 @@ async function run() {
     app.put("/manage-request/:id", async (req, res) => {
       const id = req.params.id;
       const newStatus = req.body.newStatus;
+      const actionDate = req.body.actionDate;
       const assetId = req.body.assetId;
       if(newStatus === "approved"){
         const assetQuery = {
@@ -166,15 +184,42 @@ async function run() {
       }
   
 
+      if(newStatus === "returned"){
+        const assetQuery = {
+            _id: new ObjectId(assetId),
+          };
+          const newAsset = await assetCollection.findOne(assetQuery);
+          const existingQuantity = newAsset.assetQuantity;
+          const newQuantity = parseInt(existingQuantity) + 1;
+          const newQuantityString = newQuantity.toString();
+    
+          const updateQuantity = {
+            $set: {
+              assetQuantity: newQuantityString,
+            },
+          };
+          const assetQuantityUpdate = await assetCollection.updateOne(
+            assetQuery,
+            updateQuantity
+          );
+      }
+
       const filter = { _id: new ObjectId(id) };
       const updateRequest = {
         $set: {
           status: newStatus,
+          actionDate: actionDate
         },
       };
       const result = await requestCollection.updateOne(filter, updateRequest);
       res.send(result);
     });
+    app.delete('/delete-request/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await requestCollection.deleteOne(query);
+        res.send(result)
+    })
 
     //user database related API
     app.get("/find-users", async (req, res) => {
@@ -191,6 +236,9 @@ async function run() {
       const result = await usersCollection.find(query).toArray();
       res.send(result);
     });
+
+  
+
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const userEmail = newUser.email;
