@@ -96,6 +96,21 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/manage-custom-request/:id", async (req, res) => {
+        const id = req.params.id;
+        const newStatus = req.body.newStatus;
+  
+        const filter = { _id: new ObjectId(id) };
+        const updateRequest = {
+          $set: {
+            status: newStatus,
+          },
+        };
+        const result = await customRequestCollection.updateOne(filter, updateRequest);
+        res.send(result);
+      });
+  
+
     //request related APIs
 
     app.get("/allrequests", async (req, res) => {
@@ -130,33 +145,26 @@ async function run() {
       const id = req.params.id;
       const newStatus = req.body.newStatus;
       const assetId = req.body.assetId;
-      //   const existingLimit = newUser.employeeLimit;
-      //   const newLimit =
-      //     parseInt(existingLimit) + parseInt(updatedUser.employeeLimit);
-      //   const newLimitString = newLimit.toString();
-      //   const updateUser = {
-      //     $set: {
-      //       employeeLimit: newLimitString,
-      //     },
-      //   };
-      //   const result = await usersCollection.updateOne(filter, updateUser);
-      const assetQuery = {
-        _id: new ObjectId(assetId),
-      };
-      const newAsset = await assetCollection.findOne(assetQuery);
-      const existingQuantity = newAsset.assetQuantity;
-      const newQuantity = parseInt(existingQuantity) - 1;
-      const newQuantityString = newQuantity.toString();
-
-      const updateQuantity = {
-        $set: {
-          assetQuantity: newQuantityString,
-        },
-      };
-      const assetQuantityUpdate = await assetCollection.updateOne(
-        assetQuery,
-        updateQuantity
-      );
+      if(newStatus === "approved"){
+        const assetQuery = {
+            _id: new ObjectId(assetId),
+          };
+          const newAsset = await assetCollection.findOne(assetQuery);
+          const existingQuantity = newAsset.assetQuantity;
+          const newQuantity = parseInt(existingQuantity) - 1;
+          const newQuantityString = newQuantity.toString();
+    
+          const updateQuantity = {
+            $set: {
+              assetQuantity: newQuantityString,
+            },
+          };
+          const assetQuantityUpdate = await assetCollection.updateOne(
+            assetQuery,
+            updateQuantity
+          );
+      }
+  
 
       const filter = { _id: new ObjectId(id) };
       const updateRequest = {
