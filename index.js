@@ -274,6 +274,7 @@ async function run() {
       const updateUser = {
         $set: {
           userCompany: updatedUser.userCompany,
+          companyImage: updatedUser.companyImage
         },
       };
       const result = await usersCollection.updateOne(filter, updateUser);
