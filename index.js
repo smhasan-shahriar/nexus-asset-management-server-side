@@ -68,6 +68,28 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/asset/:id", async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await assetCollection.findOne(query);
+      res.send(result)
+    })
+    app.put("/update-asset/:id", async(req, res) => {
+      const id = req.params.id;
+      const updatedAsset = req.body;
+      const filter = {_id: new ObjectId(id)};
+      const updateAsset = {
+        $set: {
+          assetName: updatedAsset.assetName,
+          assetType: updatedAsset.assetType,
+          assetQuantity: updatedAsset.assetQuantity
+        },
+      };
+      const result = await assetCollection.updateOne(filter, updateAsset)
+      res.send(result)
+    })
+
+
     app.post("/create-asset", async (req, res) => {
       const newAsset = req.body;
       const result = await assetCollection.insertOne(newAsset);
@@ -108,6 +130,29 @@ async function run() {
         const updateRequest = {
           $set: {
             status: newStatus,
+          },
+        };
+        const result = await customRequestCollection.updateOne(filter, updateRequest);
+        res.send(result);
+      });
+      app.put("/update-custom-request/:id", async (req, res) => {
+        const id = req.params.id;
+        const assetName = req.body.assetName;
+        const assetType = req.body.assetType;
+        const assetPrice = req.body.assetPrice;
+        const assetImage = req.body.assetImage;
+        const requestReason = req.body.requestReason;
+        const requestInfo = req.body.requestInfo;
+  
+        const filter = { _id: new ObjectId(id) };
+        const updateRequest = {
+          $set: {
+            assetName: assetName,
+            assetType: assetType,
+            assetPrice: assetPrice,
+            assetImage: assetImage,
+            requestReason: requestReason,
+            requestInfo: requestInfo
           },
         };
         const result = await customRequestCollection.updateOne(filter, updateRequest);
