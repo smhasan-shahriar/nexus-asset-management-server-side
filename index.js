@@ -326,11 +326,11 @@ async function run() {
       res.send(result);
     });
     app.put("/manage-multiple-member", async (req, res) => {
-      const { emails, userCompany } = req.body;
+      const { emails, userCompany, companyImage } = req.body;
       const updateUser = {
         $set: {
           userCompany,
-          companyImage: userCompany.companyImage,
+          companyImage
         },
       };
   
