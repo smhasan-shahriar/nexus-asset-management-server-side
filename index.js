@@ -325,6 +325,21 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateUser);
       res.send(result);
     });
+    app.put("/manage-multiple-member", async (req, res) => {
+      const { emails, userCompany } = req.body;
+      const updateUser = {
+        $set: {
+          userCompany,
+          companyImage: userCompany.companyImage,
+        },
+      };
+  
+      const result = await usersCollection.updateMany(
+        { email: { $in: emails } },
+        updateUser
+      );
+      res.send(result);
+    });
     app.put("/adminusers/:email", async (req, res) => {
       const email = req.params.email;
       const updatedUser = req.body;
