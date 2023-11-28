@@ -7,7 +7,16 @@ const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5174",
+      "http://localhost:5173",
+      "https://sparkly-parfait-a3fbdc.netlify.app",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wzle5cq.mongodb.net/?retryWrites=true&w=majority`;
@@ -23,8 +32,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+   
     const database = client.db("assetDB");
     const usersCollection = database.collection("users");
     const assetCollection = database.collection("assets");
@@ -95,6 +103,19 @@ async function run() {
       const result = await assetCollection.insertOne(newAsset);
       res.send(result);
     });
+
+    app.delete("/delete-asset/:id", async(req, res) => {
+      const id = req.params.id;
+      const requestResult = await requestCollection.findOne({assetId: id})
+      if(requestResult?.status === "pending"){
+        res.send({message: 'The asset has pending request. Please Resolve first.'})
+      }
+      else{
+        const query = {_id: new ObjectId(id)};
+        const deleteResult = await assetCollection.deleteOne(query);
+        res.send(deleteResult)
+      }
+    })
 
     //custom request related APIs
 
@@ -361,7 +382,7 @@ async function run() {
 
     app.get("/checkuser", async (req, res) => {
       const userEmail = req.query.email;
-      query = { email: userEmail };
+      const query = { email: userEmail };
       const user = await usersCollection.findOne(query);
       res.send(user);
     });
